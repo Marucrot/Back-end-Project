@@ -2,7 +2,9 @@ const express = require("express");
 const dotenv = require("dotenv");
 const connectDB = require("./config/database");
 
-dotenv.config();
+dotenv.config({ path: "./.env" });
+
+console.log("ISI ENV:", process.env.MONGO_URI);
 
 const app = express();
 app.use(express.json());
