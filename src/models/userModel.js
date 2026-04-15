@@ -34,11 +34,11 @@ module.exports = (mongoose) => {
         type: String,
         default: null,
       },
-      otp_expired_at: {
+      otp_expired: {
         type: Date,
         default: null,
       },
-      otp_purpose: {
+      otp_tipe: {
         type: String,
         default: null,
       },
