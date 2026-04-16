@@ -6,8 +6,8 @@ async function findByEmail(email) {
   return User.findOne({ email: email.toLowerCase() });
 }
 
-async function findByPhone(nomor_telp) {
-  return User.findOne({ nomor_telp });
+async function findByPhone(nomorTelp) {
+  return User.findOne({ nomor_telp: nomorTelp });
 }
 
 async function findByNik(nik) {
