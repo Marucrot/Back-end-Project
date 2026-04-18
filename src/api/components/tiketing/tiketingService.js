@@ -4,13 +4,13 @@ const getTicketById = async (ticketId, requestingUserId) => {
   const ticket = await repo.cariId(ticketId);
 
   if (!ticket) {
-    const err = new Error('Ticket not found.');
+    const err = new Error('Tiket tidak di temui.');
     err.statusCode = 404;
     throw err;
   }
 
   if (ticket.userId._id.toString() !== requestingUserId.toString()) {
-    const err = new Error('Access denied. This ticket does not belong to you.');
+    const err = new Error('Tiket bukan punya kamu!');
     err.statusCode = 403;
     throw err;
   }
@@ -28,7 +28,7 @@ const getSeatAvailability = async (eventId) => {
   const tickets = await repo.cariEvent(eventId);
 
   if (!tickets.length) {
-    return { takenSeats: [], message: 'No tickets booked for this event yet.' };
+    return { takenSeats: [], message: 'Belum ada tiket yang di booked untuk event ini.' };
   }
 
   const takenSeats = tickets
@@ -45,13 +45,13 @@ const cancelTicket = async (ticketId, requestingUserId) => {
   const ticket = await repo.cariId(ticketId);
 
   if (!ticket) {
-    const err = new Error('Ticket not found.');
+    const err = new Error('Tiket tidak di temui.');
     err.statusCode = 404;
     throw err;
   }
 
   if (ticket.userId._id.toString() !== requestingUserId.toString()) {
-    const err = new Error('Access denied. This ticket does not belong to you.');
+    const err = new Error('Tiket bukan punya kamu!');
     err.statusCode = 403;
     throw err;
   }
@@ -71,13 +71,13 @@ const refundTicket = async (ticketId, requestingUserId) => {
   const ticket = await repo.cariId(ticketId);
 
   if (!ticket) {
-    const err = new Error('Ticket not found.');
+    const err = new Error('Tiket tidak di temui.');
     err.statusCode = 404;
     throw err;
   }
 
   if (ticket.userId._id.toString() !== requestingUserId.toString()) {
-    const err = new Error('Access denied. This ticket does not belong to you.');
+    const err = new Error('Tiket bukan punya kamu!');
     err.statusCode = 403;
     throw err;
   }
