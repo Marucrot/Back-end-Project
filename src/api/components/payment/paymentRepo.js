@@ -1,5 +1,7 @@
-const Payment = require('../../../models/paymentModel');
-const Tiket = require('../../../models/tiketingModel');
+const db = require('../../../models');
+
+const Payment = db.payments;
+const Tiket = db.tiketing;
 
 async function createPayment(payload) {
   return Payment.create(payload);
