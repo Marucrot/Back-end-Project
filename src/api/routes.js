@@ -1,12 +1,14 @@
 const express = require('express');
 const users = require('./components/users/userRoute');
 const payment = require('./components/payment/paymentRoute');
+const venue = require('./components/venue/venueRoute');
 
 module.exports = () => {
   const app = express.Router();
 
   users(app);
   payment(app);
+  venue(app);
 
   return app;
 };
