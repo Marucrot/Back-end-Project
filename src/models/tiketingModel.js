@@ -4,13 +4,13 @@ const tiketingSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'users', 
       required: true,
     },
 
     eventId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Event',
+      ref: 'Venue', 
       required: true,
     },
 
@@ -31,8 +31,8 @@ const tiketingSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ['aktif', 'dibatalkan', 'refunded', 'terpakai'],
-      default: 'active',
+      enum: ['aktif', 'dibatalkan', 'dikembalikan', 'terpakai'],
+      default: 'aktif',
     },
 
     paymentId: {
