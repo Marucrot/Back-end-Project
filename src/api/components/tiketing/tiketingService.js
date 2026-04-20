@@ -1,4 +1,5 @@
 const repo = require('./tiketingRepo');
+const paymentService = require('../payment/paymentService');
 
 const getTicketById = async (ticketId, requestingUserId) => {
   const ticket = await repo.cariId(ticketId);
@@ -87,9 +88,11 @@ const refundTicket = async (ticketId, requestingUserId) => {
     err.statusCode = 400;
     throw err;
   }
-
-
-    // REMINDER: MASUKIN SISTEM REFUND WOI KALO UDAH ADA
+  
+  await paymentService.cancelPayment({
+    user_id: requestingUserId,
+    payment_id: ticket.paymentId,
+  });
 
   return repo.ubahStatus(ticketId, 'dikembalikan', { refundedAt: new Date() });
 };
