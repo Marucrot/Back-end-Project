@@ -2,14 +2,14 @@ const Ticket = require('../../../models/tiketingModel');
 
 const cariId = (ticketId) => {
   return Ticket.findById(ticketId)
-    .populate('userId', 'name email')   // adjust fields to match userModel
-    .populate('eventId', 'name date')   // adjust fields to match eventModel
-    .populate('paymentId');             // adjust fields to match paymentModel
+    .populate('userId', 'nama email')   // 'nama' matches userModel field
+    .populate('eventId', 'nama')        // 'nama' matches venueModel field
+    .populate('paymentId');
 };
 
 const cariUser = (userId) => {
   return Ticket.find({ userId })
-    .populate('eventId', 'name date')
+    .populate('eventId', 'nama')
     .populate('paymentId')
     .sort({ createdAt: -1 }); // newest first
 };

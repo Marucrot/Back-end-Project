@@ -5,5 +5,6 @@ const db = {};
 db.users = require('./userModel');
 db.payments = require('./paymentModel');
 db.venues = require('./venueModel');
+db.tiketing = require('./tiketingModel');
 
 module.exports = db;
