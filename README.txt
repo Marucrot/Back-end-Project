@@ -1,4 +1,0 @@
-David Adrian / 535250113
-Deco / 535250118
-Kelvandi / 535250116
-Juan / 535250131
