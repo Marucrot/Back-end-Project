@@ -4,13 +4,13 @@ const tiketingSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'users', 
+      ref: 'users',
       required: true,
     },
 
     eventId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Venue', 
+      ref: 'Venue',
       required: true,
     },
 
