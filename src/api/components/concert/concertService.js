@@ -1,33 +1,33 @@
 const concertRepo = require('./concertRepo');
 
 async function createConcert(payload) {
-    const {
-        name,
-        description,
-        venue_id: venueId,
-        artists,
-        date,
-        open_gate_time: openGateTime,
-        show_time: showTime,
-        ticket_categories: ticketCategories,
-        poster_url: posterUrl,
-        min_age: minAge,
-    } = payload;
+  const {
+    name,
+    description,
+    venue_id: venueId,
+    artists,
+    date,
+    open_gate_time: openGateTime,
+    show_time: showTime,
+    ticket_categories: ticketCategories,
+    poster_url: posterUrl,
+    min_age: minAge,
+  } = payload;
 
-    if (!name || !venueId || !date || !openGateTime || !showTime) {
-        throw new Error('Semua field wajib diisi (name, venue_id, date, open_gate_time, show_time)');
-    }
+  if (!name || !venueId || !date || !openGateTime || !showTime) {
+    throw new Error('Semua field wajib diisi (name, venue_id, date, open_gate_time, show_time)');
+  }
 
-    const concert = await concertRepo.createConcert({
-        name,
-        description,
-        venueId,
-        artists: artists || [],
-        date: new Date(date),
-        openGateTime: new Date(openGateTime),
-        showTime: new Date(showTime),
-        ticketCategories: ticketCategories || [],
-        posterUrl,
+  const concert = await concertRepo.createConcert({
+    name,
+    description,
+    venueId,
+    artists: artists || [],
+    date: new Date(date),
+    openGateTime: new Date(openGateTime),
+    showTime: new Date(showTime),
+    ticketCategories: ticketCategories || [],
+    posterUrl,
         minAge,
         status: 'draft',
     });
