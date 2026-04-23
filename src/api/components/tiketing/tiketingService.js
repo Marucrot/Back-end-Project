@@ -19,7 +19,6 @@ const getTicketById = async (ticketId, requestingUserId) => {
   return ticket;
 };
 
-
 const getMyTickets = async (userId) => {
   const tickets = await repo.cariUser(userId);
   return tickets;

@@ -5,7 +5,7 @@ const route = express.Router();
 
 module.exports = (app) => {
   app.use('/payments', route);
-  
+
   route.post('/create', paymentController.createPayment);
   route.post('/checkout', paymentController.checkoutPayment);
   route.post('/status', paymentController.checkStatus);
