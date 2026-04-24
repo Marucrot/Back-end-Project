@@ -12,11 +12,29 @@ async function findPaymentById(paymentId) {
 }
 
 async function findPaymentByUserId(userId) {
-  return Payment.find({ userId }).sort({ createdAt: -1 }).populate('ticketIds');
+  return Payment.find({ userId })
+    .sort({ createdAt: -1 })
+    .populate('ticketIds');
 }
 
 async function updatePaymentById(paymentId, payload) {
   return Payment.findByIdAndUpdate(paymentId, payload, { new: true });
+}
+
+async function findTicketById(ticketId) {
+  return Tiket.findById(ticketId);
+}
+
+async function createTicket(payload) {
+  return Tiket.create(payload);
+}
+
+async function findTakenSeat(eventId, seatLabel) {
+  return Tiket.findOne({
+    eventId,
+    'seat.label': seatLabel,
+    status: { $in: ['pending', 'aktif'] },
+  });
 }
 
 async function updateTicketsStatus(ticketIds, payload) {
@@ -31,5 +49,8 @@ module.exports = {
   findPaymentById,
   findPaymentByUserId,
   updatePaymentById,
+  findTicketById,
+  createTicket,
+  findTakenSeat,
   updateTicketsStatus,
 };
