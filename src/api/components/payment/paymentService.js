@@ -114,8 +114,12 @@ async function checkoutPayment(payload) {
     paid_at: new Date(),
   });
 
-  await paymentRepo.updateTicketsStatus(payment.ticketIds, {
-    status: 'aktif',
+  const normalizedTicketIds = payment.ticketIds.map((id) =>
+    typeof id === 'object' && id._id ? id._id : id
+  );
+
+  await paymentRepo.updateTicketsStatus(normalizedTicketIds, {
+  status: 'aktif',
   });
 
   return {

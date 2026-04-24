@@ -1,5 +1,4 @@
 const repo = require('./tiketingRepo');
-const paymentService = require('../payment/paymentService');
 
 const getTicketById = async (ticketId, requestingUserId) => {
   const ticket = await repo.cariId(ticketId);
@@ -10,8 +9,11 @@ const getTicketById = async (ticketId, requestingUserId) => {
     throw err;
   }
 
-  // 🔥 FIX DI SINI
-  if (ticket.userId.toString() !== requestingUserId.toString()) {
+  const ticketUserId =
+    ticket.userId?._id?.toString?.() ||
+    ticket.userId?.toString?.();
+
+  if (ticketUserId !== requestingUserId.toString()) {
     const err = new Error('Tiket bukan punya kamu!');
     err.statusCode = 403;
     throw err;
@@ -21,8 +23,7 @@ const getTicketById = async (ticketId, requestingUserId) => {
 };
 
 const getMyTickets = async (userId) => {
-  const tickets = await repo.cariUser(userId);
-  return tickets;
+  return await repo.cariUser(userId);
 };
 
 const getSeatAvailability = async (eventId) => {
@@ -54,8 +55,11 @@ const cancelTicket = async (ticketId, requestingUserId) => {
     throw err;
   }
 
-  // 🔥 FIX DI SINI
-  if (ticket.userId.toString() !== requestingUserId.toString()) {
+  const ticketUserId =
+    ticket.userId?._id?.toString?.() ||
+    ticket.userId?.toString?.();
+
+  if (ticketUserId !== requestingUserId.toString()) {
     const err = new Error('Tiket bukan punya kamu!');
     err.statusCode = 403;
     throw err;
@@ -69,7 +73,7 @@ const cancelTicket = async (ticketId, requestingUserId) => {
     throw err;
   }
 
-  return repo.ubahStatus(ticketId, 'dibatalkan', {
+  return await repo.ubahStatus(ticketId, 'dibatalkan', {
     cancelledAt: new Date(),
   });
 };
@@ -83,8 +87,11 @@ const refundTicket = async (ticketId, requestingUserId) => {
     throw err;
   }
 
-  // 🔥 FIX DI SINI
-  if (ticket.userId.toString() !== requestingUserId.toString()) {
+  const ticketUserId =
+    ticket.userId?._id?.toString?.() ||
+    ticket.userId?.toString?.();
+
+  if (ticketUserId !== requestingUserId.toString()) {
     const err = new Error('Tiket bukan punya kamu!');
     err.statusCode = 403;
     throw err;
@@ -98,17 +105,7 @@ const refundTicket = async (ticketId, requestingUserId) => {
     throw err;
   }
 
-  const paymentId =
-    typeof ticket.paymentId === 'object'
-      ? ticket.paymentId._id
-      : ticket.paymentId;
-
-  await paymentService.cancelPayment({
-    user_id: requestingUserId,
-    payment_id: paymentId,
-  });
-
-  return repo.ubahStatus(ticketId, 'dikembalikan', {
+  return await repo.ubahStatus(ticketId, 'dikembalikan', {
     refundedAt: new Date(),
   });
 };
