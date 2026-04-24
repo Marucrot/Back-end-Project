@@ -1,265 +1,144 @@
 const concertRepo = require('./concertRepo');
 
+async function getAllConcerts() {
+  const concerts = await concertRepo.findAll();
+  return {
+    message: 'Berhasil mengambil data concert',
+    data: concerts,
+  };
+}
+
+async function getConcertById(concertId) {
+  const concert = await concertRepo.findById(concertId);
+  if (!concert) {
+    throw new Error('Concert tidak ditemukan');
+  }
+  return {
+    message: 'Berhasil mengambil detail concert',
+    data: concert,
+  };
+}
+
 async function createConcert(payload) {
   const {
-    name,
-    description,
-    venue_id: venueId,
-    artists,
-    date,
-    open_gate_time: openGateTime,
-    show_time: showTime,
-    ticket_categories: ticketCategories,
-    poster_url: posterUrl,
-    min_age: minAge,
+    nama_concert: namaConcert,
+    artis,
+    tanggal,
+    lokasi,
+    deskripsi,
+    harga_tiket: hargaTiket,
+    kuota_tiket: kuotaTiket,
   } = payload;
 
-  if (!name || !venueId || !date || !openGateTime || !showTime) {
-    throw new Error('Semua field wajib diisi (name, venue_id, date, open_gate_time, show_time)');
+  if (
+    !namaConcert ||
+    !artis ||
+    !tanggal ||
+    !lokasi ||
+    hargaTiket === undefined ||
+    kuotaTiket === undefined
+  ) {
+    throw new Error('Semua field wajib diisi');
+  }
+
+  if (hargaTiket < 0) {
+    throw new Error('Harga tiket tidak boleh negatif');
+  }
+
+  if (kuotaTiket < 1) {
+    throw new Error('Kuota tiket minimal 1');
+  }
+
+  if (new Date(tanggal) < new Date()) {
+    throw new Error('Tanggal concert tidak boleh di masa lalu');
   }
 
   const concert = await concertRepo.createConcert({
-    name,
-    description,
-    venueId,
-    artists: artists || [],
-    date: new Date(date),
-    openGateTime: new Date(openGateTime),
-    showTime: new Date(showTime),
-    ticketCategories: ticketCategories || [],
-    posterUrl,
-        minAge,
-        status: 'draft',
-    });
+    nama_concert: namaConcert,
+    artis,
+    tanggal: new Date(tanggal),
+    lokasi,
+    deskripsi: deskripsi || null,
+    harga_tiket: hargaTiket,
+    kuota_tiket: kuotaTiket,
+  });
 
-    return {
-        message: 'Konser berhasil dibuat',
-        data: concert,
-    };
+  return {
+    message: 'Concert berhasil ditambahkan',
+    data: concert,
+  };
 }
 
-async function getAllConcerts(payload) {
-    const { status } = payload;
+async function updateConcert(concertId, payload) {
+  const concert = await concertRepo.findById(concertId);
+  if (!concert) {
+    throw new Error('Concert tidak ditemukan');
+  }
 
-    const filter = {};
-    if (status) filter.status = status;
+  const {
+    nama_concert: namaConcert,
+    artis,
+    tanggal,
+    lokasi,
+    deskripsi,
+    harga_tiket: hargaTiket,
+    kuota_tiket: kuotaTiket,
+  } = payload;
 
-    const concerts = await concertRepo.findAllConcerts(filter);
+  if (hargaTiket !== undefined && hargaTiket < 0) {
+    throw new Error('Harga tiket tidak boleh negatif');
+  }
 
-    return {
-        message: 'Daftar konser berhasil diambil',
-        data: concerts,
-    };
-}
-
-async function getConcertDetail(payload) {
-    const { concert_id: concertId } = payload;
-
-    if (!concertId) throw new Error('concert_id wajib diisi');
-
-    const concert = await concertRepo.findConcertById(concertId);
-    if (!concert) throw new Error('Konser tidak ditemukan');
-
-    return {
-        message: 'Detail konser berhasil diambil',
-        data: concert,
-    };
-}
-
-async function updateConcert(payload) {
-    const {
-        concert_id: concertId,
-        name,
-        description,
-        venue_id: venueId,
-        date,
-        open_gate_time: openGateTime,
-        show_time: showTime,
-        poster_url: posterUrl,
-        min_age: minAge,
-        status,
-    } = payload;
-
-    if (!concertId) throw new Error('concert_id wajib diisi');
-
-    const concert = await concertRepo.findConcertById(concertId);
-    if (!concert) throw new Error('Konser tidak ditemukan');
-
-    if (concert.status === 'selesai' || concert.status === 'dibatalkan') {
-        throw new Error('Konser yang sudah selesai atau dibatalkan tidak bisa diupdate');
-    }
-
-    const updateData = {};
-    if (name) updateData.name = name;
-    if (description !== undefined) updateData.description = description;
-    if (venueId) updateData.venueId = venueId;
-    if (date) updateData.date = new Date(date);
-    if (openGateTime) updateData.openGateTime = new Date(openGateTime);
-    if (showTime) updateData.showTime = new Date(showTime);
-    if (posterUrl !== undefined) updateData.posterUrl = posterUrl;
-    if (minAge !== undefined) updateData.minAge = minAge;
-    if (status) updateData.status = status;
-
-    const updated = await concertRepo.updateConcertById(concertId, updateData);
-
-    return {
-        message: 'Konser berhasil diupdate',
-        data: updated,
-    };
-}
-
-async function publishConcert(payload) {
-    const { concert_id: concertId } = payload;
-
-    if (!concertId) throw new Error('concert_id wajib diisi');
-
-    const concert = await concertRepo.findConcertById(concertId);
-    if (!concert) throw new Error('Konser tidak ditemukan');
-
-    if (concert.status !== 'draft') {
-        throw new Error('Hanya konser berstatus draft yang bisa dipublish');
-    }
-    if (concert.artists.length === 0) {
-        throw new Error('Tambahkan minimal 1 artist sebelum publish konser');
-    }
-    if (concert.ticketCategories.length === 0) {
-        throw new Error('Tambahkan minimal 1 kategori tiket sebelum publish konser');
-    }
-
-    const updated = await concertRepo.updateConcertById(concertId, { status: 'published' });
-
-    return {
-        message: 'Konser berhasil dipublish',
-        data: updated,
-    };
-}
-
-async function cancelConcert(payload) {
-    const { concert_id: concertId } = payload;
-
-    if (!concertId) throw new Error('concert_id wajib diisi');
-
-    const concert = await concertRepo.findConcertById(concertId);
-    if (!concert) throw new Error('Konser tidak ditemukan');
-
-    if (concert.status === 'selesai' || concert.status === 'dibatalkan') {
-        throw new Error('Konser ini sudah selesai atau sudah dibatalkan');
-    }
-
-    const updated = await concertRepo.updateConcertById(concertId, { status: 'dibatalkan' });
-
-    return {
-        message: 'Konser berhasil dibatalkan',
-        data: updated,
-    };
-}
-
-async function addArtist(payload) {
-    const {
-        concert_id: concertId,
-        name,
-        genre,
-        set_duration: setDuration,
-        order_appearance: orderAppearance,
-    } = payload;
-
-    if (!concertId || !name) {
-        throw new Error('concert_id dan name artist wajib diisi');
-    }
-
-    const concert = await concertRepo.findConcertById(concertId);
-    if (!concert) throw new Error('Konser tidak ditemukan');
-
-    if (concert.status === 'selesai' || concert.status === 'dibatalkan') {
-        throw new Error('Tidak bisa menambah artist ke konser yang sudah selesai atau dibatalkan');
-    }
-
-    const artist = { name, genre, setDuration, orderAppearance };
-    const updated = await concertRepo.addArtistToConcert(concertId, artist);
-
-    return {
-        message: `Artist "${name}" berhasil ditambahkan ke konser`,
-        data: updated,
-    };
-}
-
-async function removeArtist(payload) {
-    const { concert_id: concertId, artist_id: artistId } = payload;
-
-    if (!concertId || !artistId) {
-        throw new Error('concert_id dan artist_id wajib diisi');
-    }
-
-    const concert = await concertRepo.findConcertById(concertId);
-    if (!concert) throw new Error('Konser tidak ditemukan');
-
-    if (concert.status === 'selesai' || concert.status === 'dibatalkan') {
-        throw new Error('Tidak bisa menghapus artist dari konser yang sudah selesai atau dibatalkan');
-    }
-
-    const updated = await concertRepo.removeArtistFromConcert(concertId, artistId);
-
-    return {
-        message: 'Artist berhasil dihapus dari konser',
-        data: updated,
-    };
-}
-
-async function addTicketCategory(payload) {
-    const { concert_id: concertId, name, price, quota } = payload;
-
-    if (!concertId || !name || price === undefined || !quota) {
-        throw new Error('concert_id, name, price, dan quota wajib diisi');
-    }
-
-    const concert = await concertRepo.findConcertById(concertId);
-    if (!concert) throw new Error('Konser tidak ditemukan');
-
-    if (concert.status !== 'draft') {
-        throw new Error('Kategori tiket hanya bisa ditambahkan saat konser masih berstatus draft');
-    }
-
-    const isDuplicate = concert.ticketCategories.some(
-        (cat) => cat.name.toLowerCase() === name.toLowerCase()
+  if (kuotaTiket !== undefined && kuotaTiket < concert.tiket_terjual) {
+    throw new Error(
+      'Kuota tiket tidak boleh kurang dari tiket yang sudah terjual'
     );
-    if (isDuplicate) throw new Error(`Kategori tiket "${name}" sudah ada`);
+  }
 
-    const updated = await concertRepo.addTicketCategory(concertId, { name, price, quota, sold: 0 });
+  if (tanggal && new Date(tanggal) < new Date()) {
+    throw new Error('Tanggal concert tidak boleh di masa lalu');
+  }
 
-    return {
-        message: `Kategori tiket "${name}" berhasil ditambahkan`,
-        data: updated,
-    };
+  const updatePayload = {};
+  if (namaConcert !== undefined) updatePayload.nama_concert = namaConcert;
+  if (artis !== undefined) updatePayload.artis = artis;
+  if (tanggal !== undefined) updatePayload.tanggal = new Date(tanggal);
+  if (lokasi !== undefined) updatePayload.lokasi = lokasi;
+  if (deskripsi !== undefined) updatePayload.deskripsi = deskripsi;
+  if (hargaTiket !== undefined) updatePayload.harga_tiket = hargaTiket;
+  if (kuotaTiket !== undefined) updatePayload.kuota_tiket = kuotaTiket;
+
+  const updated = await concertRepo.updateConcertById(concertId, updatePayload);
+
+  return {
+    message: 'Concert berhasil diperbarui',
+    data: updated,
+  };
 }
 
-async function deleteConcert(payload) {
-    const { concert_id: concertId } = payload;
+async function deleteConcert(concertId) {
+  const concert = await concertRepo.findById(concertId);
+  if (!concert) {
+    throw new Error('Concert tidak ditemukan');
+  }
 
-    if (!concertId) throw new Error('concert_id wajib diisi');
+  if (concert.tiket_terjual > 0) {
+    throw new Error(
+      'Concert tidak dapat dihapus karena sudah ada tiket yang terjual'
+    );
+  }
 
-    const concert = await concertRepo.findConcertById(concertId);
-    if (!concert) throw new Error('Konser tidak ditemukan');
+  await concertRepo.deleteConcertById(concertId);
 
-    if (concert.status !== 'draft') {
-        throw new Error('Hanya konser berstatus draft yang bisa dihapus permanen');
-    }
-
-    await concertRepo.deleteConcertById(concertId);
-
-    return {
-        message: 'Konser berhasil dihapus',
-    };
+  return {
+    message: 'Concert berhasil dihapus',
+  };
 }
 
 module.exports = {
-    createConcert,
-    getAllConcerts,
-    getConcertDetail,
-    updateConcert,
-    publishConcert,
-    cancelConcert,
-    addArtist,
-    removeArtist,
-    addTicketCategory,
-    deleteConcert,
+  getAllConcerts,
+  getConcertById,
+  createConcert,
+  updateConcert,
+  deleteConcert,
 };
