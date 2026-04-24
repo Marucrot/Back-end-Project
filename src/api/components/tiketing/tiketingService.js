@@ -10,7 +10,8 @@ const getTicketById = async (ticketId, requestingUserId) => {
     throw err;
   }
 
-  if (ticket.userId._id.toString() !== requestingUserId.toString()) {
+  // 🔥 FIX DI SINI
+  if (ticket.userId.toString() !== requestingUserId.toString()) {
     const err = new Error('Tiket bukan punya kamu!');
     err.statusCode = 403;
     throw err;
@@ -28,7 +29,10 @@ const getSeatAvailability = async (eventId) => {
   const tickets = await repo.cariEvent(eventId);
 
   if (!tickets.length) {
-    return { takenSeats: [], message: 'Belum ada tiket yang di booked untuk event ini.' };
+    return {
+      takenSeats: [],
+      message: 'Belum ada tiket yang di booked untuk event ini.',
+    };
   }
 
   const takenSeats = tickets
@@ -50,7 +54,8 @@ const cancelTicket = async (ticketId, requestingUserId) => {
     throw err;
   }
 
-  if (ticket.userId._id.toString() !== requestingUserId.toString()) {
+  // 🔥 FIX DI SINI
+  if (ticket.userId.toString() !== requestingUserId.toString()) {
     const err = new Error('Tiket bukan punya kamu!');
     err.statusCode = 403;
     throw err;
@@ -64,7 +69,9 @@ const cancelTicket = async (ticketId, requestingUserId) => {
     throw err;
   }
 
-  return repo.ubahStatus(ticketId, 'dibatalkan', { cancelledAt: new Date() });
+  return repo.ubahStatus(ticketId, 'dibatalkan', {
+    cancelledAt: new Date(),
+  });
 };
 
 const refundTicket = async (ticketId, requestingUserId) => {
@@ -76,24 +83,34 @@ const refundTicket = async (ticketId, requestingUserId) => {
     throw err;
   }
 
-  if (ticket.userId._id.toString() !== requestingUserId.toString()) {
+  // 🔥 FIX DI SINI
+  if (ticket.userId.toString() !== requestingUserId.toString()) {
     const err = new Error('Tiket bukan punya kamu!');
     err.statusCode = 403;
     throw err;
   }
 
   if (ticket.status !== 'dibatalkan') {
-    const err = new Error('Tiket harus dibatalkan terlebih dahulu sebelum dapat direfund.');
+    const err = new Error(
+      'Tiket harus dibatalkan terlebih dahulu sebelum dapat direfund.'
+    );
     err.statusCode = 400;
     throw err;
   }
-  
+
+  const paymentId =
+    typeof ticket.paymentId === 'object'
+      ? ticket.paymentId._id
+      : ticket.paymentId;
+
   await paymentService.cancelPayment({
     user_id: requestingUserId,
-    payment_id: ticket.paymentId,
+    payment_id: paymentId,
   });
 
-  return repo.ubahStatus(ticketId, 'dikembalikan', { refundedAt: new Date() });
+  return repo.ubahStatus(ticketId, 'dikembalikan', {
+    refundedAt: new Date(),
+  });
 };
 
 module.exports = {
