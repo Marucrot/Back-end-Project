@@ -1,30 +1,30 @@
-const Ticket = require('../../../models');
+const { Tiketing } = require('../../../models');
 
 const cariId = (ticketId) => {
-  return Ticket.findById(ticketId)
+  return Tiketing.findById(ticketId)
     .populate('userId', 'nama email')
-    .populate('eventId', 'nama')     
+    .populate('eventId', 'nama')
     .populate('paymentId');
 };
 
 const cariUser = (userId) => {
-  return Ticket.find({ userId })
+  return Tiketing.find({ userId })
     .populate('eventId', 'nama')
     .populate('paymentId')
     .sort({ createdAt: -1 });
 };
 
 const cariEvent = (eventId) => {
-  return Ticket.find({ eventId });
+  return Tiketing.find({ eventId });
 };
 
 const buat = (ticketData) => {
-  const ticket = new Ticket(ticketData);
+  const ticket = new Tiketing(ticketData);
   return ticket.save();
 };
 
 const ubahStatus = (ticketId, status, extraFields = {}) => {
-  return Ticket.findByIdAndUpdate(
+  return Tiketing.findByIdAndUpdate(
     ticketId,
     { status, ...extraFields },
     { new: true }
@@ -32,10 +32,10 @@ const ubahStatus = (ticketId, status, extraFields = {}) => {
 };
 
 const cariKursi = (eventId, seatLabel) => {
-  return Ticket.findOne({
+  return Tiketing.findOne({
     eventId,
     'seat.label': seatLabel,
-    status: 'aktif', 
+    status: 'aktif',
   });
 };
 
