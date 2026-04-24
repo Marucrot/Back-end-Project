@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+module.exports = (mongoose) => {
 const tiketingSchema = new mongoose.Schema(
   {
     userId: {
@@ -54,4 +55,5 @@ const tiketingSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model('Tiketing', tiketingSchema);
+return mongoose.model ('Tiketing', tiketingSchema);
+};
