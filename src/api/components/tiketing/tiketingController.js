@@ -43,7 +43,6 @@ const getMyTickets = async (req, res) => {
   }
 };
 
-// POST body: { event_id }
 const getSeatAvailability = async (req, res) => {
   try {
     const { event_id: eventId } = req.body;
@@ -65,7 +64,6 @@ const getSeatAvailability = async (req, res) => {
   }
 };
 
-// POST body: { user_id, ticket_id }
 const cancelTicket = async (req, res) => {
   try {
     const { user_id: userId, ticket_id: ticketId } = req.body;
@@ -87,7 +85,6 @@ const cancelTicket = async (req, res) => {
   }
 };
 
-// POST body: { user_id, ticket_id }
 const refundTicket = async (req, res) => {
   try {
     const { user_id: userId, ticket_id: ticketId } = req.body;

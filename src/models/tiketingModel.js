@@ -1,16 +1,17 @@
 const mongoose = require('mongoose');
 
+module.exports = (mongoose) => {
 const tiketingSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'users', 
+      ref: 'users',
       required: true,
     },
 
     eventId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Venue', 
+      ref: 'Venue',
       required: true,
     },
 
@@ -54,4 +55,5 @@ const tiketingSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model('Tiketing', tiketingSchema);
+return mongoose.model ('Tiketing', tiketingSchema);
+};
