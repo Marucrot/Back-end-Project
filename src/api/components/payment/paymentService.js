@@ -83,6 +83,7 @@ async function createPayment(payload) {
 
   return {
     message: 'Tagihan pembayaran berhasil dibuat',
+    payment_id: payment._id, // 🔥 FIX UTAMA
     data: payment,
   };
 }
@@ -119,6 +120,7 @@ async function checkoutPayment(payload) {
 
   return {
     message: 'Pembayaran berhasil dikonfirmasi',
+    payment_id: updatedPayment._id,
     data: updatedPayment,
   };
 }
@@ -142,6 +144,7 @@ async function checkStatus(payload) {
 
   return {
     message: 'Status pembayaran berhasil diambil',
+    payment_id: payment._id,
     data: payment,
   };
 }
@@ -177,6 +180,7 @@ async function cancelPayment(payload) {
 
   return {
     message: 'Tagihan pembayaran berhasil dibatalkan',
+    payment_id: updatedPayment._id,
     data: updatedPayment,
   };
 }
