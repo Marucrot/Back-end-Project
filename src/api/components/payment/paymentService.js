@@ -1,40 +1,84 @@
 const paymentRepo = require('./paymentRepo');
-const tiketingRepo = require('../tiketing/tiketingRepo');
 
 async function createPayment(payload) {
   const {
     user_id: userId,
     ticket_ids: ticketIds,
+    event_id: eventId,
+    seat,
     metode_pembayaran: metodePembayaran,
   } = payload;
 
-  if (!userId || !ticketIds || ticketIds.length === 0 || !metodePembayaran) {
-    throw new Error('Semua field wajib diisi');
+  if (!userId || !metodePembayaran) {
+    throw new Error('user_id dan metode_pembayaran wajib diisi');
   }
 
+  let finalTicketIds = [];
   let totalAmount = 0;
-  for (const tId of ticketIds) {
-    const tiket = await tiketingRepo.cariId(tId);
-    if (!tiket) {
-      throw new Error(`Tiket dengan ID ${tId} tidak ditemukan`);
+
+  if (ticketIds && ticketIds.length > 0) {
+    for (const ticketId of ticketIds) {
+      const tiket = await paymentRepo.findTicketById(ticketId);
+
+      if (!tiket) {
+        throw new Error(`Tiket dengan ID ${ticketId} tidak ditemukan`);
+      }
+
+      if (tiket.userId.toString() !== userId.toString()) {
+        throw new Error(`Tiket ${ticketId} bukan milik user ini`);
+      }
+
+      if (tiket.paymentId) {
+        throw new Error(`Tiket ${ticketId} sudah masuk proses pembayaran lain`);
+      }
+
+      if (tiket.status === 'aktif') {
+        throw new Error(`Tiket ${ticketId} sudah aktif dan tidak perlu dibayar lagi`);
+      }
+
+      finalTicketIds.push(tiket._id);
+      totalAmount += tiket.seat.price;
     }
-    if (tiket.paymentId) {
-      throw new Error(`Tiket ${tId} sudah masuk dalam proses pembayaran lain`);
+  } else {
+    if (!eventId || !seat || !seat.label || !seat.section || !seat.price) {
+      throw new Error(
+        'Jika tidak memakai ticket_ids, maka event_id dan seat wajib diisi'
+      );
     }
-    totalAmount += tiket.seat.price;
+
+    const takenSeat = await paymentRepo.findTakenSeat(eventId, seat.label);
+
+    if (takenSeat) {
+      throw new Error(`Kursi ${seat.label} sudah dipilih atau sudah aktif`);
+    }
+
+    const tiketBaru = await paymentRepo.createTicket({
+      userId,
+      eventId,
+      seat: {
+        label: seat.label,
+        section: seat.section,
+        price: seat.price,
+      },
+      status: 'pending',
+      paymentId: null,
+    });
+
+    finalTicketIds.push(tiketBaru._id);
+    totalAmount += tiketBaru.seat.price;
   }
 
   const payment = await paymentRepo.createPayment({
     userId,
-    ticketIds,
+    ticketIds: finalTicketIds,
     total_amount: totalAmount,
     metode_pembayaran: metodePembayaran,
     status: 'pending',
   });
 
-  await paymentRepo.updateTicketsStatus(ticketIds, {
+  await paymentRepo.updateTicketsStatus(finalTicketIds, {
     status: 'pending',
-    paymentId: payment.id,
+    paymentId: payment._id,
   });
 
   return {
@@ -47,10 +91,11 @@ async function checkoutPayment(payload) {
   const { user_id: userId, payment_id: paymentId } = payload;
 
   if (!userId || !paymentId) {
-    throw new Error('Semua field wajib diisi');
+    throw new Error('user_id dan payment_id wajib diisi');
   }
 
   const payment = await paymentRepo.findPaymentById(paymentId);
+
   if (!payment) {
     throw new Error('Payment tidak ditemukan');
   }
@@ -68,7 +113,9 @@ async function checkoutPayment(payload) {
     paid_at: new Date(),
   });
 
-  await paymentRepo.updateTicketsStatus(payment.ticketIds, { status: 'aktif' });
+  await paymentRepo.updateTicketsStatus(payment.ticketIds, {
+    status: 'aktif',
+  });
 
   return {
     message: 'Pembayaran berhasil dikonfirmasi',
@@ -80,10 +127,11 @@ async function checkStatus(payload) {
   const { user_id: userId, payment_id: paymentId } = payload;
 
   if (!userId || !paymentId) {
-    throw new Error('Semua field wajib diisi');
+    throw new Error('user_id dan payment_id wajib diisi');
   }
 
   const payment = await paymentRepo.findPaymentById(paymentId);
+
   if (!payment) {
     throw new Error('Payment tidak ditemukan');
   }
@@ -102,10 +150,11 @@ async function cancelPayment(payload) {
   const { user_id: userId, payment_id: paymentId } = payload;
 
   if (!userId || !paymentId) {
-    throw new Error('Semua field wajib diisi');
+    throw new Error('user_id dan payment_id wajib diisi');
   }
 
   const payment = await paymentRepo.findPaymentById(paymentId);
+
   if (!payment) {
     throw new Error('Payment tidak ditemukan');
   }
@@ -115,7 +164,7 @@ async function cancelPayment(payload) {
   }
 
   if (payment.status === 'berhasil') {
-    throw new Error('Pembayaran yang sudah lunas tidak bisa dibatalkan');
+    throw new Error('Pembayaran yang sudah berhasil tidak bisa dibatalkan');
   }
 
   const updatedPayment = await paymentRepo.updatePaymentById(paymentId, {
@@ -136,7 +185,7 @@ async function paymentHistory(payload) {
   const { user_id: userId } = payload;
 
   if (!userId) {
-    throw new Error('Semua field wajib diisi');
+    throw new Error('user_id wajib diisi');
   }
 
   const history = await paymentRepo.findPaymentByUserId(userId);
